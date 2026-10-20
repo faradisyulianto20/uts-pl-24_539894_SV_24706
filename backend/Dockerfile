@@ -1,8 +1,8 @@
 # ==============================================================
 # Backend Dockerfile – Laravel dengan FrankenPHP (Nilai Tambahan +10)
-# Base image versi spesifik (bukan latest)
+# Base image versi spesifik PHP 8.3 (bukan latest)
 # ==============================================================
-FROM dunglas/frankenphp:1.4.4-php8.2-alpine AS runner
+FROM dunglas/frankenphp:1.4.4-php8.3-alpine AS runner
 
 # Install ekstensi PHP yang dibutuhkan Laravel
 RUN install-php-extensions \
@@ -25,7 +25,7 @@ RUN composer install --no-dev --optimize-autoloader --no-interaction --no-script
 # Salin seluruh kode aplikasi backend
 COPY . .
 
-# Salin entrypoint script untuk runtime migration (anti-pattern build-time migration teratasi)
+# Salin entrypoint script untuk runtime migration
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
