@@ -33,7 +33,7 @@ services:
     container_name: uts-backend
     restart: unless-stopped
     environment:
-      APP_NAME: "UTS KEPL Laravel API"
+      APP_NAME: "Zaskia Literary Blog API"
       APP_ENV: ${APP_ENV:-production}
       APP_KEY: ${APP_KEY:-base64:XG8d14sEHzUv8v4jY9i2x+6g2nZ1rX3mO5kQ7tP9wE=}
       APP_DEBUG: ${APP_DEBUG:-true}
@@ -48,6 +48,9 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    volumes:
+      # Named volume untuk persistensi berkas cover image yang diunggah
+      - app_storage:/app/storage/app/public
     ports:
       - "8000:8000"
     networks:
@@ -71,10 +74,12 @@ services:
     networks:
       - uts-network
 
-# Named Volume untuk persistensi data database
+# Named Volumes untuk persistensi data database & media uploads
 volumes:
   db_data:
     name: uts_mysql_data
+  app_storage:
+    name: uts_app_storage
 
 # Network internal Docker Compose antar service
 networks:
