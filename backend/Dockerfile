@@ -1,8 +1,8 @@
 # ==============================================================
 # Backend Dockerfile – Laravel dengan FrankenPHP (Nilai Tambahan +10)
-# Base image versi spesifik PHP 8.3 (bukan latest)
+# Base image versi spesifik PHP 8.4 (bukan latest)
 # ==============================================================
-FROM dunglas/frankenphp:1.4.4-php8.3-alpine AS runner
+FROM dunglas/frankenphp:1.4.4-php8.4-alpine AS runner
 
 # Install ekstensi PHP yang dibutuhkan Laravel
 RUN install-php-extensions \
