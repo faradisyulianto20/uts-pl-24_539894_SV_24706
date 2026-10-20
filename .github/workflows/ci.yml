@@ -1,0 +1,139 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+      - 'feat/**'
+      - 'feature/**'
+  pull_request:
+    branches:
+      - main
+      - dev
+
+jobs:
+  # ==============================================================
+  # Job 1: Pengujian Backend (Laravel)
+  # Menjalankan php artisan test
+  # ==============================================================
+  backend-test:
+    name: Backend Test (Laravel)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./backend
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup PHP Environment
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mbstring, xml, ctype, iconv, intl, pdo, pdo_sqlite, bcmath, zip
+          coverage: none
+
+      - name: Cache Composer Dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.composer/cache/files
+          key: ${{ runner.os }}-composer-${{ hashFiles('backend/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-composer-
+
+      - name: Install Composer Dependencies
+        run: composer install --prefer-dist --no-interaction --no-progress
+
+      - name: Generate Application Key
+        run: php artisan key:generate --env=testing
+
+      - name: Run Backend Tests
+        env:
+          APP_ENV: testing
+          DB_CONNECTION: sqlite
+          DB_DATABASE: ':memory:'
+        run: php artisan test
+
+  # ==============================================================
+  # Job 2: Build Frontend (Vue.js)
+  # Menjalankan npm ci dan npm run build
+  # ==============================================================
+  frontend-build:
+    name: Frontend Build (Vue.js)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./frontend
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js Environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install Frontend Dependencies
+        run: npm ci
+
+      - name: Build Frontend Application
+        run: npm run build
+
+  # ==============================================================
+  # Job 3: Continuous Deployment (Push Image ke ghcr.io)
+  # HANYA berjalan pada PUSH ke branch MAIN setelah test & build lulus
+  # Menggunakan Buildx Cache (type=gha) untuk performa build super cepat
+  # ==============================================================
+  deploy:
+    name: Build & Push Docker Images to GHCR
+    needs: [backend-test, frontend-build]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set Image Repository Name to Lowercase
+        run: |
+          echo "IMAGE_REPO=$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+
+      - name: Log in to GitHub Container Registry (ghcr.io)
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # Build and push Backend image with commit SHA tag and GitHub Actions cache
+      - name: Build & Push Backend Docker Image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./backend
+          file: ./backend/Dockerfile
+          push: true
+          tags: ghcr.io/${{ env.IMAGE_REPO }}/backend:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # Build and push Frontend image with commit SHA tag and GitHub Actions cache
+      - name: Build & Push Frontend Docker Image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./frontend
+          file: ./frontend/Dockerfile
+          push: true
+          tags: ghcr.io/${{ env.IMAGE_REPO }}/frontend:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

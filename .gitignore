@@ -68,7 +68,6 @@ public/hot
 # 4. Docker / Docker‑Compose artefact
 # ---------------------------------------------------------
 # Dockerfile cache layers (jika memakai build‑kit)
-**/.dockerignore
 
 # Docker Compose override / generated files
 docker-compose.override.yml
