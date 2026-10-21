@@ -1,0 +1,11 @@
+/vendor
+/bootstrap/cache/*.php
+.env
+.env.*
+.git
+.github
+tests
+node_modules
+npm-debug.log
+*.log
+.phpunit.result.cache

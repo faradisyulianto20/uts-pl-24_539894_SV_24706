@@ -1,0 +1,670 @@
+{
+  "info": {
+    "name": "UTS PL - Zaskia Literary Blog API",
+    "description": "Koleksi endpoint API Zaskia Literary Blog (Laravel + Sanctum + Google OAuth + Posts & Comments CRUD) untuk UTS Konstruksi & Evolusi Perangkat Lunak.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://127.0.0.1:8000",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "post_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "comment_id",
+      "value": "1",
+      "type": "string"
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "Auth (Public)",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Mahasiswa UTS\",\n  \"email\": \"mahasiswa@example.com\",\n  \"password\": \"password123\",\n  \"password_confirmation\": \"password123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/register",
+              "host": ["{{base_url}}"],
+              "path": ["api", "register"]
+            },
+            "description": "Registrasi user baru. Mengembalikan 201 + token. Validasi gagal mengembalikan 422."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    pm.collectionVariables.set('token', pm.response.json().token);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"password\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "login"]
+            },
+            "description": "Login memakai email & password. Berhasil: 200 + token (otomatis disimpan ke variable {{token}}). Kredensial salah: 401. Validasi gagal: 422."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    pm.collectionVariables.set('token', pm.response.json().token);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Google OAuth Redirect",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/auth/google",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "google"]
+            },
+            "description": "Redirect ke halaman persetujuan Google OAuth. Jika kredensial Google belum diisi, redirect ke frontend dengan ?error=google_not_configured."
+          }
+        },
+        {
+          "name": "Google OAuth Callback",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/auth/google/callback?code=ISI_KODE_GOOGLE",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "google", "callback"],
+              "query": [
+                {
+                  "key": "code",
+                  "value": "ISI_KODE_GOOGLE"
+                }
+              ]
+            },
+            "description": "Callback setelah persetujuan Google. Mengembalikan redirect ke frontend dengan token."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Auth (Protected)",
+      "item": [
+        {
+          "name": "Get Current User (Me)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/me",
+              "host": ["{{base_url}}"],
+              "path": ["api", "me"]
+            },
+            "description": "Mengambil data user terautentikasi. Tanpa token: 401."
+          }
+        },
+        {
+          "name": "Update Profile (Me)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "name",
+                  "value": "Nama Baru",
+                  "type": "text"
+                },
+                {
+                  "key": "email",
+                  "value": "baru@example.com",
+                  "type": "text"
+                },
+                {
+                  "key": "avatar",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/me",
+              "host": ["{{base_url}}"],
+              "path": ["api", "me"]
+            },
+            "description": "Perbarui profil sendiri (name, email, avatar opsional). Berhasil: 200. Validasi gagal: 422. Tanpa token: 401."
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/logout",
+              "host": ["{{base_url}}"],
+              "path": ["api", "logout"]
+            },
+            "description": "Menghapus token yang sedang dipakai. Tanpa token: 401."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Posts",
+      "item": [
+        {
+          "name": "Index Posts",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/posts?search=&popular=",
+              "host": ["{{base_url}}"],
+              "path": ["api", "posts"],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "",
+                  "description": "Filter kata kunci di title/content (opsional)",
+                  "disabled": true
+                },
+                {
+                  "key": "popular",
+                  "value": "1",
+                  "description": "Hanya tampilkan is_popular = true (opsional)",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Daftar post terbaru (terotentikasi). Menyertakan relasi user dan cover_image_url."
+          }
+        },
+        {
+          "name": "Show Post",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/posts/{{post_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "posts", "{{post_id}}"]
+            },
+            "description": "Detail post + comments + user. Setiap akses menambah views +1. Tidak ditemukan: 404."
+          }
+        },
+        {
+          "name": "Store Post (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "title",
+                  "value": "Resensi Buku Hujan",
+                  "type": "text"
+                },
+                {
+                  "key": "content",
+                  "value": "Isi artikel sastra yang panjang dan mendalam.",
+                  "type": "text"
+                },
+                {
+                  "key": "published_at",
+                  "value": "2026-10-21",
+                  "type": "text"
+                },
+                {
+                  "key": "is_popular",
+                  "value": "1",
+                  "type": "text",
+                  "description": "1 = populer, 0 = tidak (opsional)"
+                },
+                {
+                  "key": "cover_image",
+                  "type": "file",
+                  "src": [],
+                  "description": "JPG/PNG maks 2 MB (opsional)"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/posts",
+              "host": ["{{base_url}}"],
+              "path": ["api", "posts"]
+            },
+            "description": "Buat post baru (hanya role admin). Slug otomatis dari title (unik). Cover image disimpan ke disk public. Berhasil: 201. Bukan admin: 403. Validasi gagal: 422. Tanpa token: 401."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    pm.collectionVariables.set('post_id', pm.response.json().post.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update Post (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "_method",
+                  "value": "PUT",
+                  "type": "text",
+                  "description": "Method spoofing agar upload file tetap jalan"
+                },
+                {
+                  "key": "title",
+                  "value": "Resensi Buku Hujan (Revisi)",
+                  "type": "text"
+                },
+                {
+                  "key": "content",
+                  "value": "Isi artikel hasil revisi.",
+                  "type": "text"
+                },
+                {
+                  "key": "published_at",
+                  "value": "2026-10-22",
+                  "type": "text"
+                },
+                {
+                  "key": "is_popular",
+                  "value": "1",
+                  "type": "text"
+                },
+                {
+                  "key": "cover_image",
+                  "type": "file",
+                  "src": [],
+                  "description": "Upload cover baru (opsional); cover lama otomatis dihapus dari disk"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/posts/{{post_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "posts", "{{post_id}}"]
+            },
+            "description": "Perbarui post (hanya role admin). Pakai POST + _method=PUT agar upload file berfungsi. Judul berubah -> slug ikut diregenerasi. Bukan admin: 403."
+          }
+        },
+        {
+          "name": "Delete Post (Admin)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/posts/{{post_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "posts", "{{post_id}}"]
+            },
+            "description": "Hapus post (hanya role admin). File cover ikut dihapus. Berhasil: 200 + message. Bukan admin: 403."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Comments",
+      "item": [
+        {
+          "name": "Index Comments (per Post)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/posts/{{post_id}}/comments",
+              "host": ["{{base_url}}"],
+              "path": ["api", "posts", "{{post_id}}", "comments"]
+            },
+            "description": "Daftar komentar suatu post (terbaru dulu), menyertakan relasi user."
+          }
+        },
+        {
+          "name": "Store Comment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"body\": \"Tulisannya menyentuh sekali.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/posts/{{post_id}}/comments",
+              "host": ["{{base_url}}"],
+              "path": ["api", "posts", "{{post_id}}", "comments"]
+            },
+            "description": "Tambah komentar (user login mana pun). Berhasil: 201. Validasi gagal: 422."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    pm.collectionVariables.set('comment_id', pm.response.json().comment.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Admin",
+      "item": [
+        {
+          "name": "Admin Index Comments",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/comments",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "comments"]
+            },
+            "description": "Seluruh komentar untuk moderasi (hanya role admin), menyertakan relasi post & user. Bukan admin: 403."
+          }
+        },
+        {
+          "name": "Admin Delete Comment",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/comments/{{comment_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "comments", "{{comment_id}}"]
+            },
+            "description": "Hapus komentar (moderasi, hanya role admin). Berhasil: 200 + message. Bukan admin: 403."
+          }
+        }
+      ]
+    }
+  ]
+}

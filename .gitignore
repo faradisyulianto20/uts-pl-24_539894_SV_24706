@@ -28,11 +28,15 @@ node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-package-lock.json
-yarn.lock
-.pnpm-debug.log
+.pnpm-debug.log*
 .pnpm-store/
 .pnpm-workspace.yaml
+pnpm-lock.yaml
+
+# Environment files frontend (hanya .env.example yang di-commit)
+/frontend/.env
+/frontend/.env.*
+!/frontend/.env.example
 
 # Vite / Vue temporary files
 .vite/
@@ -45,37 +49,26 @@ public/mix-manifest.json
 # 3. Composer / PHP / Laravel artefacts (backend)
 # ---------------------------------------------------------
 /vendor/
-composer.lock
 
 # Laravel specific
 /.env
-/.env.*            # semua varian .env (misal .env.example, .env.testing)
+/.env.*
+!/.env.example
 /storage/*
-/storage/*.key    # file kunci Laravel (APP_KEY) bila tidak di‑store di .env
+/storage/*.key
 /bootstrap/cache/
 public/storage
 /.phpunit.result.cache
 /*.log
 /coverage/
-phpunit.xml
-phpunit.xml.dist
-
-# Laravel Mix / Vite generated files (jika pakai mix)
-public/mix-manifest.json
-public/hot
 
 # ---------------------------------------------------------
-# 4. Docker / Docker‑Compose artefact
+# 4. Docker / Docker Compose artefact
 # ---------------------------------------------------------
-# Dockerfile cache layers (jika memakai build‑kit)
-**/.dockerignore
-
-# Docker Compose override / generated files
 docker-compose.override.yml
-docker-compose.*.yml     # bila ada file environment‑specific
-# docker-compose.yml is committed (do NOT ignore)
+docker-compose.*.yml
 
-# Named volumes (jika Anda mount ke folder lokal – biasanya tidak)
+# Named volumes
 db_data/
 
 # ---------------------------------------------------------
@@ -85,9 +78,6 @@ db_data/
 *.coveralls.yml
 *.codecov.yml
 /.nyc_output/
-jest.config.js
-phpunit.xml
-phpunit.xml.dist
 /.github/workflows/*.log
 
 # ---------------------------------------------------------
@@ -104,5 +94,3 @@ phpunit.xml.dist
 *.sql
 *.sqlite
 *.sqlite3
-
-# End of .gitignore
