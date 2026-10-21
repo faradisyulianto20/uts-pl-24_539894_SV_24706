@@ -1,54 +1,31 @@
 <script setup>
+import { Sun, Moon } from '@lucide/vue'
 import { useTheme } from '../composables/useTheme'
 
 const { theme, setTheme } = useTheme()
+
+function isLight() {
+  return theme.value === 'light' || (theme.value === 'system' && !window.matchMedia('(prefers-color-scheme: dark)').matches)
+}
 </script>
 
 <template>
-  <div class="theme-toggle" role="group" aria-label="Toggle tema">
+  <div class="theme-toggle" role="group" aria-label="Color theme">
     <button
       type="button"
-      aria-label="Mode terang"
-      :class="{ active: theme === 'light' }"
+      aria-label="Switch to light theme"
+      :class="{ active: isLight() }"
       @click="setTheme('light')"
     >
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-      >
-        <circle cx="12" cy="12" r="4" />
-        <path d="M12 2v2" />
-        <path d="M12 20v2" />
-        <path d="m4.93 4.93 1.41 1.41" />
-        <path d="m17.66 17.66 1.41 1.41" />
-        <path d="M2 12h2" />
-        <path d="M20 12h2" />
-        <path d="m6.34 17.66-1.41 1.41" />
-        <path d="m19.07 4.93-1.41 1.41" />
-      </svg>
+      <Sun />
     </button>
     <button
       type="button"
-      aria-label="Mode gelap"
-      :class="{ active: theme === 'dark' }"
+      aria-label="Switch to dark theme"
+      :class="{ active: !isLight() }"
       @click="setTheme('dark')"
     >
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-      >
-        <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
-      </svg>
+      <Moon />
     </button>
   </div>
 </template>
