@@ -6,6 +6,9 @@ use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Laravel\Socialite\Facades\Socialite;
 
 class AuthController extends Controller
@@ -66,6 +69,31 @@ class AuthController extends Controller
     {
         return response()->json([
             'user' => $request->user(),
+        ]);
+    }
+
+    public function updateMe(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        $validated = $request->validate([
+            'name' => ['sometimes', 'required', 'string', 'max:255'],
+            'email' => ['sometimes', 'required', 'string', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
+            'avatar' => ['nullable', 'image', 'max:1024'],
+        ]);
+
+        if ($request->hasFile('avatar')) {
+            if ($user->avatar && ! Str::startsWith($user->avatar, 'http')) {
+                Storage::disk('public')->delete($user->avatar);
+            }
+            $validated['avatar'] = $request->file('avatar')->store('avatars', 'public');
+        }
+
+        $user->update($validated);
+
+        return response()->json([
+            'message' => 'Profil berhasil diperbarui.',
+            'user' => $user->fresh(),
         ]);
     }
 
