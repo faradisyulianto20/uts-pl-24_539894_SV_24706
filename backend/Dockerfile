@@ -25,6 +25,11 @@ RUN composer install --no-dev --optimize-autoloader --no-interaction --no-script
 # Salin seluruh kode aplikasi backend
 COPY . .
 
+# Regenerasi cache bootstrap agar package/route/config cache dari mesin lokal
+# (yang mungkin menunjuk paket dev seperti Boost) tidak terbawa ke image produksi.
+RUN rm -f bootstrap/cache/*.php \
+    && php artisan package:discover --ansi --no-interaction
+
 # Salin entrypoint script untuk runtime migration
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
@@ -37,13 +42,16 @@ RUN mkdir -p storage/framework/cache/data \
     && chown -R www-data:www-data storage bootstrap/cache \
     && chmod -R 775 storage bootstrap/cache
 
-# Konfigurasi FrankenPHP melayani port 8000 dan web root di /app/public
-ENV SERVER_NAME=":8000"
-ENV FRANKENPHP_CONFIG="document_root /app/public"
+# Konfigurasi FrankenPHP melayani port 8000
+# Catatan: document root TIDAK diatur lewat FRANKENPHP_CONFIG (bukan subdirektif
+# yang valid di blok frankenphp), melainkan oleh Caddyfile bawaan image:
+#   root * public/
+# Mengisinya akan membuat FrankenPHP gagal listen dan server tidak pernah start.
+ENV SERVER_NAME="http://:8000"
 
 EXPOSE 8000
 
 # Entrypoint menjalankan migrasi saat runtime, lalu mengeksekusi CMD
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 
-CMD ["frankenphp", "run"]
+CMD ["frankenphp", "run", "--config", "/etc/caddy/Caddyfile"]

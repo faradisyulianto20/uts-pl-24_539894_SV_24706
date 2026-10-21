@@ -89,9 +89,16 @@ watch(coverFile, (file) => {
   coverPreview.value = file ? URL.createObjectURL(file) : ''
 })
 
+const ACCEPTED_COVER_TYPES = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp']
+
 function onPickCover(e) {
   const file = e.target.files?.[0]
   if (!file) return
+  if (!ACCEPTED_COVER_TYPES.includes(file.type)) {
+    error.value = 'Cover image must be a JPG, PNG, or WebP file.'
+    e.target.value = ''
+    return
+  }
   if (file.size > 2 * 1024 * 1024) {
     error.value = 'Cover image must be 2MB or smaller.'
     e.target.value = ''
@@ -301,10 +308,10 @@ async function save() {
           </div>
 
           <label v-else class="dropzone">
-            <input type="file" accept="image/*" hidden @change="onPickCover" />
+            <input type="file" accept="image/jpeg,image/png,image/webp" hidden @change="onPickCover" />
             <span class="dropzone-icon"><ImageIcon :size="22" /></span>
             <span><strong>Click to upload</strong> or drag and drop</span>
-            <span>SVG, PNG, JPG (max. 2MB)</span>
+            <span>PNG, JPG, WebP (max. 2MB)</span>
           </label>
 
           <template v-if="previewSrc">
@@ -319,11 +326,11 @@ async function save() {
             </div>
             <div class="cover-hints">
               <span>Recommended 16:9 · max 2MB</span>
-              <span>SVG, PNG, JPG</span>
+              <span>PNG, JPG, WebP</span>
             </div>
             <label v-if="coverFile" class="btn-ghost" style="cursor: pointer; margin-top: 6px">
               or pick another file
-              <input type="file" accept="image/*" hidden @change="onPickCover" />
+              <input type="file" accept="image/jpeg,image/png,image/webp" hidden @change="onPickCover" />
             </label>
           </template>
         </div>
