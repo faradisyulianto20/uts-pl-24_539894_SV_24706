@@ -7,10 +7,10 @@ services:
     container_name: uts-db
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-rootsecret}
-      MYSQL_DATABASE: ${DB_DATABASE:-uts_db}
-      MYSQL_USER: ${DB_USERNAME:-uts_user}
-      MYSQL_PASSWORD: ${DB_PASSWORD:-uts_pass123}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
     volumes:
       - db_data:/var/lib/mysql
     ports:
@@ -18,7 +18,7 @@ services:
     networks:
       - uts-network
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_ROOT_PASSWORD:-rootsecret}"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_ROOT_PASSWORD}"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -34,17 +34,24 @@ services:
     restart: unless-stopped
     environment:
       APP_NAME: "Zaskia Literary Blog API"
-      APP_ENV: ${APP_ENV:-production}
-      APP_KEY: ${APP_KEY:-base64:XG8d14sEHzUv8v4jY9i2x+6g2nZ1rX3mO5kQ7tP9wE=}
-      APP_DEBUG: ${APP_DEBUG:-true}
+      APP_ENV: ${APP_ENV}
+      APP_KEY: ${APP_KEY}
+      APP_DEBUG: ${APP_DEBUG}
       APP_URL: http://localhost:8000
       LOG_CHANNEL: stack
+      SESSION_DRIVER: database
       DB_CONNECTION: mysql
       DB_HOST: db
       DB_PORT: 3306
-      DB_DATABASE: ${DB_DATABASE:-uts_db}
-      DB_USERNAME: ${DB_USERNAME:-uts_user}
-      DB_PASSWORD: ${DB_PASSWORD:-uts_pass123}
+      DB_DATABASE: ${DB_DATABASE}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      # Google OAuth (nilai diisi dari berkas .env di root, tidak di-commit)
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      GOOGLE_REDIRECT_URI: ${GOOGLE_REDIRECT_URI}
+      # URL frontend yang diakses browser (port published docker compose)
+      FRONTEND_URL: ${FRONTEND_URL}
     depends_on:
       db:
         condition: service_healthy

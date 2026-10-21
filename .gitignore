@@ -28,9 +28,15 @@ node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-.pnpm-debug.log
+.pnpm-debug.log*
 .pnpm-store/
 .pnpm-workspace.yaml
+pnpm-lock.yaml
+
+# Environment files frontend (hanya .env.example yang di-commit)
+/frontend/.env
+/frontend/.env.*
+!/frontend/.env.example
 
 # Vite / Vue temporary files
 .vite/
