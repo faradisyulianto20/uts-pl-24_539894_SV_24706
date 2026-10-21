@@ -2,7 +2,7 @@
 # Frontend Dockerfile – Vue.js Multi-Stage Build
 # Stage 1: Build dengan Node.js (versi spesifik, bukan latest)
 # ==============================================================
-FROM node:20.12.2-alpine AS builder
+FROM node:22.12.0-alpine AS builder
 
 WORKDIR /app
 

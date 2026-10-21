@@ -54,7 +54,7 @@ class PostController extends Controller
             'content' => ['required', 'string'],
             'published_at' => ['required', 'date'],
             'is_popular' => ['nullable', 'boolean'],
-            'cover_image' => ['nullable', 'image', 'max:2048'],
+            'cover_image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:2048'],
         ]);
 
         $data = [
@@ -87,7 +87,7 @@ class PostController extends Controller
             'content' => ['sometimes', 'required', 'string'],
             'published_at' => ['sometimes', 'required', 'date'],
             'is_popular' => ['nullable', 'boolean'],
-            'cover_image' => ['nullable', 'image', 'max:2048'],
+            'cover_image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:2048'],
         ]);
 
         if (array_key_exists('title', $validated) && $validated['title'] !== $post->title) {
