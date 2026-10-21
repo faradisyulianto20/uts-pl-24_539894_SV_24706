@@ -1,4 +1,4 @@
-# 🗄️ ERD.md (Entity Relationship Document)
+﻿# 🗄️ ERD.md (Entity Relationship Document)
 
 ## 1. Entity Relationship Diagram (Mermaid)
 
@@ -88,3 +88,9 @@ erDiagram
 * `post_id`: `BIGINT`, Foreign Key referencing `posts(id)` ON DELETE CASCADE.
 * `user_id`: `BIGINT`, Foreign Key referencing `users(id)` ON DELETE CASCADE.
 * `body`: `TEXT`, NOT NULL.
+
+### 2.4 Notes for UI/Design Alignment
+
+* **Comments UI:** Komentar menampilkan informasi dari relasi users (nama, avatar) untuk kebutuhan tampilan di CommentSection.vue dan halaman Admin Comments.
+* **Profile:** Informasi users.avatar, users.name, users.email, users.role digunakan untuk Navbar, Profile Page, dan role-based UI.
+* **Theme (Client-side):** Preferensi **Light/Dark Mode** bersifat client-side (disimpan di localStorage) dan tidak wajib disimpan di basis data untuk kebutuhan UTS ini.

@@ -44,7 +44,8 @@ uts-pl-NIM/
 │   │   ├── components/
 │   │   │   ├── Navbar.vue
 │   │   │   ├── SidebarPopular.vue
-│   │   │   └── CommentSection.vue
+│   │   │   ├── CommentSection.vue
+│   │   │   └── ThemeToggle.vue (opsional/recommended)
 │   │   ├── services/
 │   │   │   └── api.js
 │   │   ├── views/
@@ -53,7 +54,10 @@ uts-pl-NIM/
 │   │   │   ├── AuthCallbackView.vue
 │   │   │   ├── BlogView.vue
 │   │   │   ├── PostDetailView.vue
-│   │   │   └── DashboardView.vue
+│   │   │   ├── DashboardView.vue
+│   │   │   ├── ProfileView.vue
+│   │   │   ├── AdminCommentsView.vue
+│   │   │   └── AdminSettingsView.vue
 │   │   ├── router/index.js
 │   │   ├── App.vue
 │   │   └── main.js
@@ -147,3 +151,15 @@ Sebelum menyerahkan hasil pengerjaan, Agent wajib memverifikasi poin berikut:
 4. Lakukan registrasi user baru & login -> Token Sanctum tersimpan di `localStorage`.
 5. Uji coba upload cover image pada postingan blog -> Gambar tampil sempurna di frontend.
 6. Lakukan uji coba `docker compose down` lalu `docker compose up -d` -> Data di database dan file gambar yang diupload tidak hilang (Named volume `db_data` dan `app_storage` terverifikasi).
+
+### Step 1.1: Additional API Endpoints (Design Alignment)
+
+1. Tambahkan endpoint profile (self-update) di 
+outes/api.php dan controller terkait:
+   - GET /api/me → Mengembalikan data user terautentikasi.
+   - PUT/PATCH /api/me → Memperbarui 
+ame, email, dan vatar (dapat berupa upload multipart/form-data). Validasi yang sesuai dan hanya memperbarui data milik user sendiri.
+2. Tambahkan endpoint moderasi komentar global untuk halaman Admin Comments:
+   - GET /api/admin/comments → Mengembalikan seluruh komentar dengan eager load relasi post, user (diurutkan terbaru), diakses oleh user dengan role dmin (uth:sanctum + role check).
+3. Pertimbangkan auto-generate slug dari 	itle saat membuat post (unik) untuk menjaga konsistensi URL/detail.
+
