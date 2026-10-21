@@ -1,19 +1,22 @@
 <script setup>
 import { ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { Eye, EyeOff } from '@lucide/vue'
 import api from '../services/api'
 import AppShell from '../components/AppShell.vue'
+import { useAuth } from '../composables/useAuth'
 
 const route = useRoute()
 const router = useRouter()
+const { setUser } = useAuth()
 
 const apiBase = (import.meta.env.VITE_API_BASE || '/api').replace(/\/$/, '')
 const googleAuthUrl = `${apiBase}/auth/google`
 
 const GOOGLE_ERRORS = {
-  google_failed: 'Login Google gagal atau dibatalkan. Silakan coba lagi.',
+  google_failed: 'Google login failed or was cancelled. Please try again.',
   google_not_configured:
-    'Login Google belum dikonfigurasi di server. Gunakan email dan password sebagai gantinya.',
+    'Google login is not configured on the server yet. Please use email and password instead.',
 }
 
 const email = ref('')
@@ -24,7 +27,7 @@ const loading = ref(false)
 
 const initialError = route.query.error
 if (initialError && typeof initialError === 'string') {
-  error.value = GOOGLE_ERRORS[initialError] || 'Terjadi kesalahan saat login Google.'
+  error.value = GOOGLE_ERRORS[initialError] || 'Something went wrong with Google login.'
 }
 
 async function handleLogin() {
@@ -38,13 +41,16 @@ async function handleLogin() {
     })
 
     localStorage.setItem('token', data.token)
-    router.push({ name: 'home' })
+    if (data.user) setUser(data.user)
+    router.push({ name: 'blog' })
   } catch (e) {
     if (e.response?.status === 422) {
       const errors = e.response.data.errors
       error.value = Object.values(errors).flat().join(' ')
+    } else if (e.response?.status === 401) {
+      error.value = 'Those credentials don’t match any reader. Try again.'
     } else {
-      error.value = e.response?.data?.message || 'Terjadi kesalahan. Coba lagi.'
+      error.value = e.response?.data?.message || 'Something went wrong. Please try again.'
     }
   } finally {
     loading.value = false
@@ -54,37 +60,40 @@ async function handleLogin() {
 
 <template>
   <AppShell>
-    <div>
-      <div class="login-card">
-        <p class="login-eyebrow">Your Quiet Corner</p>
-        <h1 class="login-title">Welcome Back</h1>
-        <p class="login-subtitle">
+    <div class="auth-wrap">
+      <div class="auth-card">
+        <p class="auth-logo">Zaskia.</p>
+        <p class="eyebrow auth-eyebrow">Your Quiet Corner</p>
+        <h1 class="auth-title">Welcome Back</h1>
+        <p class="auth-subtitle">
           A space for your words, and the stories still waiting to be told.
         </p>
 
-        <form class="login-form" @submit.prevent="handleLogin">
-          <div v-if="error" class="alert">{{ error }}</div>
+        <form class="auth-form" @submit.prevent="handleLogin">
+          <div v-if="error" class="alert alert-error">{{ error }}</div>
 
           <div class="field">
             <label for="email">Email</label>
-            <div class="input-wrap">
-              <input
-                id="email"
-                v-model="email"
-                type="email"
-                required
-                placeholder="you@example.com"
-                autocomplete="email"
-              />
-            </div>
+            <input
+              id="email"
+              v-model="email"
+              class="input"
+              type="email"
+              required
+              placeholder="you@example.com"
+              autocomplete="email"
+            />
           </div>
 
           <div class="field">
-            <label for="password">Password</label>
+            <div class="field-row">
+              <label for="password">Password</label>
+            </div>
             <div class="input-wrap has-icon">
               <input
                 id="password"
                 v-model="password"
+                class="input"
                 :type="showPassword ? 'text' : 'password'"
                 required
                 placeholder="Enter your password"
@@ -93,58 +102,23 @@ async function handleLogin() {
               <button
                 type="button"
                 class="input-icon-btn"
-                :aria-label="showPassword ? 'Sembunyikan password' : 'Tampilkan password'"
+                :aria-label="showPassword ? 'Hide password' : 'Show password'"
                 @click="showPassword = !showPassword"
               >
-                <svg
-                  v-if="!showPassword"
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24" />
-                  <path
-                    d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"
-                  />
-                  <path
-                    d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"
-                  />
-                  <line x1="2" x2="22" y1="2" y2="22" />
-                </svg>
-                <svg
-                  v-else
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" />
-                  <circle cx="12" cy="12" r="3" />
-                </svg>
+                <EyeOff v-if="showPassword" :size="18" />
+                <Eye v-else :size="18" />
               </button>
             </div>
           </div>
 
-          <a href="#" class="forgot-link" @click.prevent>Forgot password?</a>
-
           <button type="submit" class="btn btn-primary" :disabled="loading">
-            {{ loading ? 'Memproses...' : 'Login' }}
+            {{ loading ? 'Signing in…' : 'Login' }}
           </button>
 
-          <div class="divider"><span>or</span></div>
+          <div class="auth-divider"><span>or</span></div>
 
-          <a
-            class="btn btn-google"
-            :href="googleAuthUrl"
-          >
-            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <a class="btn btn-outline" :href="googleAuthUrl">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" width="18" height="18">
               <path
                 d="M21.35 11.1h-9.17v2.73h6.51c-.33 3.81-3.5 5.44-6.5 5.44C8.36 19.27 5 16.25 5 12c0-4.1 3.2-7.27 7.2-7.27 3.09 0 4.9 1.97 4.9 1.97L19 4.72S16.56 2 12.1 2C6.42 2 2.03 6.8 2.03 12c0 5.05 4.13 10 10.22 10 5.35 0 9.25-3.67 9.25-9.09 0-1.15-.15-1.81-.15-1.81Z"
               />
@@ -152,24 +126,11 @@ async function handleLogin() {
             Continue with Google
           </a>
         </form>
-      </div>
 
-      <div style="text-align: center">
-        <router-link to="/" class="back-link">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <path d="M19 12H5" />
-            <path d="m12 19-7-7 7-7" />
-          </svg>
-          Back to the journal
-        </router-link>
+        <p class="auth-alt">
+          New to the journal?
+          <router-link to="/register">Create an account</router-link>
+        </p>
       </div>
     </div>
   </AppShell>

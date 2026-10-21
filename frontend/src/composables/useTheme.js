@@ -1,18 +1,30 @@
-import { ref } from 'vue'
+import { ref, watchEffect } from 'vue'
 
 const THEME_KEY = 'zaskia-theme'
 
-function getInitialTheme() {
+function getSaved() {
   const saved = localStorage.getItem(THEME_KEY)
-  if (saved === 'light' || saved === 'dark') return saved
-  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+  return saved === 'light' || saved === 'dark' || saved === 'system' ? saved : 'system'
 }
 
-const theme = ref(getInitialTheme())
+const theme = ref(getSaved())
+const media = window.matchMedia('(prefers-color-scheme: dark)')
+
+function resolve() {
+  if (theme.value === 'system') return media.matches ? 'dark' : 'light'
+  return theme.value
+}
 
 function apply() {
-  document.documentElement.classList.toggle('dark', theme.value === 'dark')
+  const resolved = resolve()
+  const root = document.documentElement
+  root.classList.toggle('dark', resolved === 'dark')
+  root.setAttribute('data-theme', resolved)
 }
+
+media.addEventListener('change', () => {
+  if (theme.value === 'system') apply()
+})
 
 export function useTheme() {
   function setTheme(value) {
@@ -21,11 +33,12 @@ export function useTheme() {
     apply()
   }
 
-  function toggle() {
-    setTheme(theme.value === 'dark' ? 'light' : 'dark')
-  }
+  watchEffect(() => {
+    theme.value
+    apply()
+  })
 
-  return { theme, setTheme, toggle }
+  return { theme, resolvedTheme: resolve, setTheme }
 }
 
 apply()
