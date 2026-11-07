@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Post;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -71,6 +72,14 @@ class PostController extends Controller
         }
 
         $post = Post::create($data);
+
+        Log::info('post.store.succeeded', [
+            'actor_user_id' => $request->user()->id,
+            'actor_role' => $request->user()->role,
+            'action' => 'create_post',
+            'post_id' => $post->id,
+            'reason' => 'post_persisted',
+        ]);
 
         return response()->json([
             'message' => 'Post berhasil dibuat.',
