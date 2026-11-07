@@ -63,6 +63,17 @@ services:
       - "8000:8000"
     networks:
       - uts-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8000/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   # ==========================================
   # 3. Service Frontend (Vue.js + Nginx)
@@ -81,6 +92,11 @@ services:
       - "8080:80"
     networks:
       - uts-network
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
 # Named Volumes untuk persistensi data database & media uploads
 volumes:
