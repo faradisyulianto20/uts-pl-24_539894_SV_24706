@@ -46,9 +46,23 @@ return Application::configure(basePath: dirname(__DIR__))
             return $response;
         });
 
-        $exceptions->report(function (QueryException $e) {
-            $request = request();
-            $user = $request?->user();
+        $exceptions->reportable(function (\Throwable $e) {
+            $isDbConnectionFailure = $e instanceof \PDOException
+                || $e instanceof QueryException
+                || $e->getPrevious() instanceof \PDOException
+                || $e->getPrevious() instanceof QueryException;
+
+            if (! $isDbConnectionFailure) {
+                return;
+            }
+
+            $user = null;
+            try {
+                $user = request()?->user();
+            } catch (\Throwable) {
+                $user = null;
+            }
+
             Log::error('database.query_failed', [
                 'actor_user_id' => $user?->id,
                 'actor_role' => $user?->role,
@@ -56,6 +70,8 @@ return Application::configure(basePath: dirname(__DIR__))
                 'reason' => 'database_unreachable',
                 'exception' => class_basename($e),
             ]);
+
+            return false;
         });
 
         $exceptions->render(function (\Throwable $e, Request $request) {
