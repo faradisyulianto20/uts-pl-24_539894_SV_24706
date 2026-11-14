@@ -1,0 +1,12 @@
+groups:
+  - name: application_health_alerts
+    rules:
+      - alert: ServiceDown
+        expr: up == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Layanan {{ $labels.instance }} (Job: {{ $labels.job }}) terdeteksi mati/DOWN"
+          description: "Service {{ $labels.job }} pada instance {{ $labels.instance }} tidak merespons health check atau scrape Prometheus selama lebih dari 1 menit."
+          action: "TINDAKAN PERTAMA: Segera periksa log container dengan perintah 'docker compose logs --tail=100 {{ $labels.job }}', lalu lakukan restart container dengan 'docker compose restart {{ $labels.job }}'."
