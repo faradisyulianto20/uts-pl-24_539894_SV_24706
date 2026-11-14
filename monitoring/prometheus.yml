@@ -1,0 +1,30 @@
+global:
+  scrape_interval: 10s
+  evaluation_interval: 10s
+
+# Aturan Alarm (Alerting Rules)
+rule_files:
+  - "alerts.yml"
+
+# Daftar Target yang Dipantau
+scrape_configs:
+  # 1. Metrik internal Prometheus itu sendiri
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["localhost:9090"]
+
+  # 2. cAdvisor: Memantau penggunaan CPU, Memori, & Jaringan tiap Container Docker
+  - job_name: "cadvisor"
+    static_configs:
+      - targets: ["cadvisor:8080"]
+
+  # 3. Node Exporter: Memantau performa mesin/host server (CPU & RAM OS)
+  - job_name: "node-exporter"
+    static_configs:
+      - targets: ["node-exporter:9100"]
+
+  # 4. Backend Service: Aplikasi Laravel & FrankenPHP
+  - job_name: "backend"
+    metrics_path: "/metrics"
+    static_configs:
+      - targets: ["backend:8000"]
